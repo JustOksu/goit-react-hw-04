@@ -1,4 +1,3 @@
-import { createRoot } from "react-dom/client";
 import "modern-normalize";
 import App from "./App.jsx";
 
