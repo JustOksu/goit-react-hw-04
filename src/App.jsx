@@ -1,12 +1,13 @@
+import { Toaster } from "react-hot-toast";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
 
-function App() {
+const App = () => {
   return (
     <div>
-      <h1>Image Search</h1>
+      <Toaster />
       <ImageGallery />
     </div>
   );
-}
+};
 
 export default App;

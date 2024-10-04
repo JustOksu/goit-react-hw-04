@@ -5,7 +5,7 @@ import ImageModal from "../ImageModal/ImageModal";
 
 const ImageGallery = () => {
   const [images, setImages] = useState([]);
-  const [query, setQuery] = useState("nature");
+  const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [selectedImage, setSelectedImage] = useState(null);
   const [totalPages, setTotalPages] = useState(0);
@@ -14,15 +14,16 @@ const ImageGallery = () => {
 
   useEffect(() => {
     const getImages = async () => {
+      if (!query) return;
       setIsLoading(true);
       setError(null);
 
       try {
         const data = await fetchImages(query, page);
-        setImages(data.results);
+        setImages((prevImages) => [...prevImages, ...data.results]);
         setTotalPages(Math.ceil(data.total / 12));
-      } catch (err) {
-        setError(`Ошибка загрузки изображений: ${err.message}`);
+      } catch {
+        setError("Помилка завантаження зоображення. Спробуйте знову.");
       } finally {
         setIsLoading(false);
       }
@@ -45,20 +46,16 @@ const ImageGallery = () => {
     }
   };
 
-  const handlePreviousPage = () => {
-    if (page > 1) {
-      setPage((prevPage) => prevPage - 1);
-    }
-  };
-
   const handleSearchSubmit = (event) => {
     event.preventDefault();
+    setImages([]);
     setPage(1);
   };
 
   return (
     <div className={styles.galleryContainer}>
-      <form onSubmit={handleSearchSubmit}>
+      {error && <p className={styles.error}>{error}</p>}
+      <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
         <input
           type="text"
           value={query}
@@ -71,8 +68,7 @@ const ImageGallery = () => {
         </button>
       </form>
       {isLoading && <p className={styles.loading}>Загрузка...</p>}
-      {error && <p className={styles.error}>{error}</p>}{" "}
-      {/* Отображение ошибки */}
+      {error && <p className={styles.error}>{error}</p>}
       <ul className={styles.imageList}>
         {images.map((image) => (
           <li
@@ -88,15 +84,11 @@ const ImageGallery = () => {
         <ImageModal image={selectedImage} onClose={handleCloseModal} />
       )}
       <div className={styles.pagination}>
-        <button onClick={handlePreviousPage} disabled={page === 1}>
-          Previous
-        </button>
-        <span>
-          Page {page} of {totalPages}
-        </span>
-        <button onClick={handleNextPage} disabled={page === totalPages}>
-          Next
-        </button>
+        {page < totalPages && (
+          <button onClick={handleNextPage} className={styles.loadMoreButton}>
+            Load more
+          </button>
+        )}
       </div>
     </div>
   );
