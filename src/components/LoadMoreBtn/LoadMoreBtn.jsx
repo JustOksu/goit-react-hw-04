@@ -1,9 +1,9 @@
-import styles from "./LoadMoreBtn.module.css";
+import styles from "./LoadMoreBtn.module.css"; // Импортируйте стили, если у вас есть
 
 const LoadMoreBtn = ({ onClick }) => {
   return (
-    <button onClick={onClick} className={styles.loadMoreButton}>
-      Load more
+    <button className={styles.loadMoreBtn} onClick={onClick}>
+      Загрузить больше
     </button>
   );
 };

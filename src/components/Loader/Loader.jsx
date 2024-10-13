@@ -1,12 +1,12 @@
-import Loader from "react-loader-spinner";
-import styles from "./Loader.module.css";
+import styles from "./Loader.module.css"; // Импортируйте стили, если у вас есть
 
-const LoaderComponent = () => {
+const Loader = () => {
   return (
-    <div className={styles.loaderContainer}>
-      <Loader type="ThreeDots" color="#00BFFF" height={80} width={80} />
+    <div className={styles.loader}>
+      <p>Загрузка...</p>
+      {/* Вы можете добавить анимацию или спиннер */}
     </div>
   );
 };
 
-export default LoaderComponent;
+export default Loader;

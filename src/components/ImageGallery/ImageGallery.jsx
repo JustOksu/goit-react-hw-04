@@ -1,95 +1,39 @@
-import { useState, useEffect } from "react";
-import { fetchImages } from "../Services/api";
-import styles from "./ImageGallery.module.css";
-import ImageModal from "../ImageModal/ImageModal";
+import { useState } from "react";
+import ImageCard from "../ImageCard/ImageCard";
+import LoadMoreBtn from "../LoadMoreBtn/LoadMoreBtn"; // Импортируем кнопку "Load More"
 
-const ImageGallery = () => {
-  const [images, setImages] = useState([]);
-  const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [totalPages, setTotalPages] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+const ImageGallery = ({ images, onImageClick, onLoadMore, onSearchSubmit }) => {
+  const [searchQuery, setSearchQuery] = useState(""); // Состояние для поискового запроса
 
-  useEffect(() => {
-    const getImages = async () => {
-      if (!query) return;
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const data = await fetchImages(query, page);
-        setImages((prevImages) => [...prevImages, ...data.results]);
-        setTotalPages(Math.ceil(data.total / 12));
-      } catch {
-        setError("Помилка завантаження зоображення. Спробуйте знову.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getImages();
-  }, [query, page]);
-
-  const handleImageClick = (image) => {
-    setSelectedImage(image);
+  const handleLoadMore = () => {
+    onLoadMore(); // Вызов функции для загрузки дополнительных изображений
   };
 
-  const handleCloseModal = () => {
-    setSelectedImage(null);
-  };
-
-  const handleNextPage = () => {
-    if (page < totalPages) {
-      setPage((prevPage) => prevPage + 1);
-    }
-  };
-
-  const handleSearchSubmit = (event) => {
-    event.preventDefault();
-    setImages([]);
-    setPage(1);
+  const handleSearch = (event) => {
+    event.preventDefault(); // Предотвращаем перезагрузку страницы
+    onSearchSubmit(searchQuery); // Вызываем функцию поиска
+    setSearchQuery(""); // Очищаем поле поиска после отправки
   };
 
   return (
-    <div className={styles.galleryContainer}>
-      {error && <p className={styles.error}>{error}</p>}
-      <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
+    <div>
+      <form onSubmit={handleSearch}>
         <input
           type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for images..."
-          className={styles.searchInput}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)} // Обновляем состояние запроса
+          placeholder="Search images..."
         />
-        <button type="submit" className={styles.searchButton}>
-          Search
-        </button>
+        <button type="submit">Search</button> {/* Кнопка отправки поиска */}
       </form>
-      {isLoading && <p className={styles.loading}>Загрузка...</p>}
-      {error && <p className={styles.error}>{error}</p>}
-      <ul className={styles.imageList}>
+      <ul>
         {images.map((image) => (
-          <li
-            key={image.id}
-            className={styles.imageItem}
-            onClick={() => handleImageClick(image)}
-          >
-            <img src={image.urls.small} alt={image.alt_description} />
+          <li key={image.id}>
+            <ImageCard image={image} onClick={() => onImageClick(image)} />
           </li>
         ))}
       </ul>
-      {selectedImage && (
-        <ImageModal image={selectedImage} onClose={handleCloseModal} />
-      )}
-      <div className={styles.pagination}>
-        {page < totalPages && (
-          <button onClick={handleNextPage} className={styles.loadMoreButton}>
-            Load more
-          </button>
-        )}
-      </div>
+      {images.length > 0 && <LoadMoreBtn onClick={handleLoadMore} />}
     </div>
   );
 };
