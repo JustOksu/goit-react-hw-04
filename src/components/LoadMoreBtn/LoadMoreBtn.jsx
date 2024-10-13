@@ -1,4 +1,4 @@
-import styles from "./LoadMoreBtn.module.css"; // Импортируйте стили, если у вас есть
+import styles from "./LoadMoreBtn.module.css";
 
 const LoadMoreBtn = ({ onClick }) => {
   return (

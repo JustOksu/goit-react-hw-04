@@ -1,69 +1,71 @@
-import { useState } from "react";
-import { Toaster } from "react-hot-toast";
-import ImageGallery from "./components/ImageGallery/ImageGallery";
-import ImageModal from "./components/ImageModal/ImageModal";
+import { useState, useEffect } from "react";
 import { fetchImages } from "./components/Services/api";
+import ImageGallery from "./components/ImageGallery/ImageGallery";
+import SearchBar from "./components/SearchBar/SearchBar";
+import Loader from "./components/Loader/Loader";
+import ErrorMessage from "./components/ErrorMessage/ErrorMessage";
+import ImageModal from "./components/ImageModal/ImageModal";
 
 const App = () => {
-  const [images, setImages] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [page, setPage] = useState(1);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchImagesData = async () => {
+      if (!query) return;
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await fetchImages(query, page);
+        setImages((prevImages) => [...prevImages, ...data.results]);
+      } catch (error) {
+        console.error("Ошибка при загрузке изображений:", error);
+        setError("Не удалось загрузить изображения. Попробуйте еще раз.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchImagesData();
+  }, [query, page]);
+
+  const handleSearchSubmit = (searchQuery) => {
+    setQuery(searchQuery);
+    setPage(1);
+    setImages([]);
+  };
 
   const handleImageClick = (image) => {
     setSelectedImage(image);
+    setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const handleLoadMore = () => {
+    setPage((prevPage) => prevPage + 1);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
     setSelectedImage(null);
-  };
-
-  const handleSearchSubmit = async (query) => {
-    setIsLoading(true);
-    setError("");
-    setQuery(query);
-    try {
-      const data = await fetchImages(query, page);
-      setImages(data.results);
-      setPage(1);
-    } catch (error) {
-      console.error("Ошибка при загрузке изображений:", error);
-      setError("Не удалось загрузить изображения. Попробуйте еще раз.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLoadMore = async () => {
-    setIsLoading(true);
-    try {
-      const data = await fetchImages(query, page + 1);
-      setImages((prevImages) => [...prevImages, ...data.results]);
-      setPage((prevPage) => prevPage + 1);
-    } catch (error) {
-      console.error("Ошибка при загрузке изображений:", error);
-      setError("Не удалось загрузить изображения. Попробуйте еще раз.");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (
     <div>
-      <Toaster />
+      <SearchBar onSearchSubmit={handleSearchSubmit} />
+      {isLoading && <Loader />}
+      {error && <ErrorMessage message={error} />}
       <ImageGallery
         images={images}
         onImageClick={handleImageClick}
         onLoadMore={handleLoadMore}
-        onSearchSubmit={handleSearchSubmit}
-        isLoading={isLoading}
       />
-      {selectedImage && (
-        <ImageModal image={selectedImage} onClose={handleCloseModal} />
-      )}
-      {error && <p>{error}</p>}
+      {isModalOpen && <ImageModal image={selectedImage} onClose={closeModal} />}
     </div>
   );
 };
